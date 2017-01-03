@@ -8,7 +8,9 @@ This repository is to deliver the final practise of the subject 'Professional To
 
 ### Who do I talk to? ###
 
-Team members:
+This project's team is composed by the following members:
 
   * Eduardo Ortega Naranjo ([Bitbucket profile](https://bitbucket.org/Eduardo-Ortega102))
   * Joel David Delgado Perdomo ([Bitbucket profile](https://bitbucket.org/Nerioth/))
+
+Copyright (c) 2016, The Auto-Pilot Project, All rights reserved.
