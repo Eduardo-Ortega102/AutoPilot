@@ -10,6 +10,5 @@ This repository is to deliver the final practise of the subject 'Professional To
 
 Team members:
 
-  * Eduardo Ortega Naranjo (Bitbucket account: Eduardo-Ortega102)
-  * Joel David Delgado Perdomo (Bitbucket account: Nerioth)
-
+  * Eduardo Ortega Naranjo ([Bitbucket profile](https://bitbucket.org/Eduardo-Ortega102))
+  * Joel David Delgado Perdomo ([Bitbucket profile](https://bitbucket.org/Nerioth/))
