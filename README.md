@@ -14,3 +14,7 @@ This project's team is composed by the following members:
   * Joel David Delgado Perdomo ([Bitbucket profile](https://bitbucket.org/Nerioth/))
 
 Copyright (c) 2016, The Auto-Pilot Project, All rights reserved.
+
+### Your title here... ###
+
+![AutoPilot.png](https://bitbucket.org/repo/7jnxGK/images/2505693080-AutoPilot.png)
