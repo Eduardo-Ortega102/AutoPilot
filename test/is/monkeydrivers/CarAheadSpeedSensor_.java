@@ -18,7 +18,7 @@ public class CarAheadSpeedSensor_ {
             private double carAheadDistance = Double.MAX_VALUE;
             private String carAheadPlate;
             private double ownSpeed;
-            private Integer carAheadSpeed;
+            private double carAheadSpeed = Double.MAX_VALUE;
             private Bus bus;
             private final String publicationType = "CarAheadSpeed";
 
@@ -61,14 +61,14 @@ public class CarAheadSpeedSensor_ {
 
             @Override
             public Message createMessage() {
-                return new Message<Integer>() {
+                return new Message<Double>() {
                     @Override
                     public String type() {
                         return publicationType;
                     }
 
                     @Override
-                    public Integer getContent() {
+                    public Double getContent() {
                         return carAheadSpeed;
                     }
                 };
@@ -96,34 +96,35 @@ public class CarAheadSpeedSensor_ {
 
     @Test
     public void car_speed_received_should_be_equal_to_own_speed_set() throws Exception {
-        Message message = createMessageOfType("ownSpeed").withContent(50d);
-        carAheadSpeedSensor.receive(message);
-        assertThat(carAheadSpeedSensor.getOwnSpeed(), is(message.getContent()));
+        double speed = 50d;
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(speed));
+        assertThat(carAheadSpeedSensor.getOwnSpeed(), is(speed));
     }
 
     @Test
     public void ahead_car_plate_received_should_be_equal_to_ahead_car_plate_set() throws Exception {
-        Message message = createMessageOfType("carAheadPlate").withContent("1234HPDS");
-        carAheadSpeedSensor.receive(message);
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(message.getContent()));
+        String plate = "1234HPDS";
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate));
+        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(plate));
     }
 
     @Test
     public void car_ahead_plate_must_update() throws Exception {
-        String old_plate = "1234HPDS", new_plate = "1234GS1";
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(old_plate));
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(new_plate));
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), not(old_plate));
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(new_plate));
+        String plate1 = "1234HPDS", plate2 = "1234GS1";
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate1));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate2));
+        assertThat(carAheadSpeedSensor.getCarAheadPlate(), not(plate1));
+        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(plate2));
     }
 
     @Test
     public void car_ahead_distance_received_should_be_equal_to_car_ahead_distance_set() throws Exception {
-        Message message = createMessageOfType("carAheadDistance").withContent(48.2d);
-        carAheadSpeedSensor.receive(message);
-        assertThat(carAheadSpeedSensor.getCarAheadDistance(), is(message.getContent()));
+        double distance = 48.2d;
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(distance));
+        assertThat(carAheadSpeedSensor.getCarAheadDistance(), is(distance));
     }
 
+    
     private MessageFiller createMessageOfType(String type) {
         Message message = mock(Message.class);
         doReturn(type).when(message).type();
@@ -133,6 +134,7 @@ public class CarAheadSpeedSensor_ {
         };
     }
 
+    @FunctionalInterface
     private interface MessageFiller{
         Message withContent(Object content);
     }
