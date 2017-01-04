@@ -14,67 +14,70 @@ public class CarAheadSpeedSensor_ {
 
     @Before
     public void setUp() throws Exception {
-        this.carAheadSpeedSensor = new CarAheadSpeedSensor() {
-            private double carAheadDistance = Double.MAX_VALUE;
-            private String carAheadPlate;
-            private double ownSpeed;
-            private double carAheadSpeed = Double.MAX_VALUE;
-            private Bus bus;
-            private final String publicationType = "CarAheadSpeed";
-
-            @Override
-            public double getOwnSpeed() {
-                return ownSpeed;
-            }
-
-            @Override
-            public String getCarAheadPlate() {
-                return carAheadPlate;
-            }
-
-            @Override
-            public double getCarAheadDistance() {
-                return carAheadDistance;
-            }
-
-            @Override
-            public void setPublicationBus(Bus bus) {
-                this.bus = bus;
-            }
-
-            @Override
-            public void publish(Message message) {
-                if (publicationType.equals(message.type())) bus.send(message);
-            }
-
-            @Override
-            public void receive(Message message) {
-                if (message.type().equals("ownSpeed")) ownSpeed = (double) message.getContent();
-                if (message.type().equals("carAheadPlate")) carAheadPlate = (String) message.getContent();
-                if (message.type().equals("carAheadDistance")) carAheadDistance = (double) message.getContent();
-                /*
-                *
-                * velocidad que publica: (distanciaFinal - distanciaInicial) / (tiempoFinal - tiempoInicial)
-                *
-                * */
-            }
-
-            @Override
-            public Message createMessage() {
-                return new Message<Double>() {
-                    @Override
-                    public String type() {
-                        return publicationType;
-                    }
-
-                    @Override
-                    public Double getContent() {
-                        return carAheadSpeed;
-                    }
-                };
-            }
-        };
+        this.carAheadSpeedSensor = new CarAheadSpeedSensor();
     }
+
+    private static class CarAheadSpeedSensor implements VirtualSensor {
+        private double carAheadDistance = Double.MAX_VALUE;
+        private String carAheadPlate;
+        private double ownSpeed;
+        private double carAheadSpeed = Double.MAX_VALUE;
+        private Bus bus;
+        private final String publicationType = "CarAheadSpeed";
+
+
+        public double getOwnSpeed() {
+            return ownSpeed;
+        }
+
+
+        public String getCarAheadPlate() {
+            return carAheadPlate;
+        }
+
+
+        public double getCarAheadDistance() {
+            return carAheadDistance;
+        }
+
+        @Override
+        public void setPublicationBus(Bus bus) {
+            this.bus = bus;
+        }
+
+        @Override
+        public void publish(Message message) {
+            if (publicationType.equals(message.type())) bus.send(message);
+        }
+
+        @Override
+        public void receive(Message message) {
+            if (message.type().equals("ownSpeed")) ownSpeed = (double) message.getContent();
+            if (message.type().equals("carAheadPlate")) carAheadPlate = (String) message.getContent();
+            if (message.type().equals("carAheadDistance")) carAheadDistance = (double) message.getContent();
+            /*
+            *
+            * velocidad que publica: (distanciaFinal - distanciaInicial) / (tiempoFinal - tiempoInicial)
+            *
+            * */
+        }
+
+        @Override
+        public Message createMessage() {
+            return new Message<Double>() {
+                @Override
+                public String type() {
+                    return publicationType;
+                }
+
+                @Override
+                public Double getContent() {
+                    return carAheadSpeed;
+                }
+            };
+        }
+    }
+
 
     @Test
     public void should_publish_CarAheadSpeed_message() throws Exception {
@@ -124,7 +127,7 @@ public class CarAheadSpeedSensor_ {
         assertThat(carAheadSpeedSensor.getCarAheadDistance(), is(distance));
     }
 
-    
+
     private MessageFiller createMessageOfType(String type) {
         Message message = mock(Message.class);
         doReturn(type).when(message).type();
@@ -138,14 +141,6 @@ public class CarAheadSpeedSensor_ {
     private interface MessageFiller{
         Message withContent(Object content);
     }
-
-
-
-
-
-
-
-
 
 
 

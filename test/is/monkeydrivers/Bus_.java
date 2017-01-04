@@ -15,7 +15,7 @@ public class Bus_ {
 
     @Before
     public void setUp() throws Exception {
-        bus = new HashMapBus();
+        bus = new MapBus();
     }
 
     @Test

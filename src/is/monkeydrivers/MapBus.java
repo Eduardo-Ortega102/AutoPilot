@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by Mictlan on 13/12/2016.
  */
-public class HashMapBus implements Bus {
+public class MapBus implements Bus {
     private Map<String, List<Subscriber>> subscribers = new HashMap<>();
 
     @Override
