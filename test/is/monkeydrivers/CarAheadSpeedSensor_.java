@@ -3,46 +3,50 @@ package is.monkeydrivers;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class CarAheadSpeedSensor_ {
 
     private CarAheadSpeedSensor carAheadSpeedSensor;
+    private Bus bus;
 
     @Before
     public void setUp() throws Exception {
-        this.carAheadSpeedSensor = new CarAheadSpeedSensor();
+        bus = mock(Bus.class);
+        this.carAheadSpeedSensor = new CarAheadSpeedSensor(bus);
     }
 
     private static class CarAheadSpeedSensor implements VirtualSensor {
-        private double carAheadDistance = Double.MAX_VALUE;
-        private String carAheadPlate;
+        private final String publicationType;
+        private double carAheadSpeed;
         private double ownSpeed;
-        private double carAheadSpeed = Double.MAX_VALUE;
         private Bus bus;
-        private final String publicationType = "CarAheadSpeed";
+        private CarAheadDistance carAheadDistance;
+        private Map<String, MessageProcessor> processors;
 
+        public CarAheadSpeedSensor(Bus bus) {
+            publicationType = "CarAheadSpeed";
+            carAheadDistance = null;
+            this.bus = bus;
+            ownSpeed = 0;
+            carAheadSpeed = Double.MAX_VALUE;
+            processors = new HashMap<>();
+            processors.put("ownSpeed", this::processOwnSpeed);
+            processors.put("carAheadDistance", this::processCarAheadDistance);
+        }
 
         public double getOwnSpeed() {
             return ownSpeed;
         }
 
-
-        public String getCarAheadPlate() {
-            return carAheadPlate;
-        }
-
-
-        public double getCarAheadDistance() {
+        public CarAheadDistance getCarAheadDistance() {
             return carAheadDistance;
-        }
-
-        @Override
-        public void setPublicationBus(Bus bus) {
-            this.bus = bus;
         }
 
         @Override
@@ -52,14 +56,28 @@ public class CarAheadSpeedSensor_ {
 
         @Override
         public void receive(Message message) {
-            if (message.type().equals("ownSpeed")) ownSpeed = (double) message.getContent();
-            if (message.type().equals("carAheadPlate")) carAheadPlate = (String) message.getContent();
-            if (message.type().equals("carAheadDistance")) carAheadDistance = (double) message.getContent();
-            /*
-            *
-            * velocidad que publica: (distanciaFinal - distanciaInicial) / (tiempoFinal - tiempoInicial)
-            *
-            * */
+            processors.get(message.type()).processMessage(message);
+        }
+
+        private void processCarAheadDistance(Message message) {
+            CarAheadDistance newDistance = (CarAheadDistance) message.getContent();
+            if (carAheadDistance != null && carAheadDistance.getPlate().equals(newDistance.getPlate())){
+                calculateCarAheadSpeed(newDistance);
+                publish(createMessage());
+            }
+            carAheadDistance = newDistance;
+        }
+
+        private void processOwnSpeed(Message message) {
+            ownSpeed = (double) message.getContent();
+        }
+
+        private void calculateCarAheadSpeed(CarAheadDistance newDistance) {
+            double finalDistance = newDistance.getMetersToCar();
+            double initialDistance = carAheadDistance.getMetersToCar();
+            long finalInstant = newDistance.getTime().toEpochMilli() / 1000;
+            long initialInstant = carAheadDistance.getTime().toEpochMilli() / 1000;
+            carAheadSpeed = ownSpeed + (finalDistance - initialDistance) / (finalInstant - initialInstant);
         }
 
         @Override
@@ -81,51 +99,95 @@ public class CarAheadSpeedSensor_ {
 
     @Test
     public void should_publish_CarAheadSpeed_message() throws Exception {
-        Bus bus = mock(Bus.class);
         Message message = createMessageOfType("CarAheadSpeed").withContent(null);
-        carAheadSpeedSensor.setPublicationBus(bus);
         carAheadSpeedSensor.publish(message);
         verify(bus, times(1)).send(message);
     }
 
     @Test
     public void should_not_publish_a_message_if_type_is_not_CarAheadSpeed() throws Exception {
-        Bus bus = mock(Bus.class);
         Message message = createMessageOfType("foo").withContent(null);
-        carAheadSpeedSensor.setPublicationBus(bus);
         carAheadSpeedSensor.publish(message);
         verify(bus, times(0)).send(message);
     }
 
     @Test
-    public void car_speed_received_should_be_equal_to_own_speed_set() throws Exception {
+    public void should_store_own_speed_received() throws Exception {
         double speed = 50d;
         carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(speed));
         assertThat(carAheadSpeedSensor.getOwnSpeed(), is(speed));
     }
 
     @Test
-    public void ahead_car_plate_received_should_be_equal_to_ahead_car_plate_set() throws Exception {
+    public void should_store_car_ahead_distance_received() throws Exception {
+        double metersToCarAhead = 48.2d;
+        Instant instant = Instant.now();
         String plate = "1234HPDS";
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate));
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(plate));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance")
+                                    .withContent(createCarAheadDistance(metersToCarAhead, instant, plate)));
+        assertThat(carAheadSpeedSensor.getCarAheadDistance().getPlate(), is(plate));
+        assertThat(carAheadSpeedSensor.getCarAheadDistance().getMetersToCar(), is(metersToCarAhead));
+        assertThat(carAheadSpeedSensor.getCarAheadDistance().getTime(), is(instant));
     }
 
     @Test
-    public void car_ahead_plate_must_update() throws Exception {
-        String plate1 = "1234HPDS", plate2 = "1234GS1";
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate1));
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadPlate").withContent(plate2));
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), not(plate1));
-        assertThat(carAheadSpeedSensor.getCarAheadPlate(), is(plate2));
+    public void should_publish_its_own_speed_if_car_ahead_distance_is_constant() throws Exception {
+        double speed = 50d;
+        double carAheadDistance = 25d;
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(speed));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(carAheadDistance, Instant.now(), "1234GS1"))
+        );
+        Thread.sleep(1000);
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(carAheadDistance, Instant.now(), "1234GS1"))
+        );
+        assertThat(carAheadSpeedSensor.createMessage().getContent(), is(speed));
+    }
+    
+    @Test
+    public void should_publish_a_higher_speed_than_mine_if_distance_increments() throws Exception {
+        final double initialDistance = 5d, distanceIncrement = 20d;
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(50d));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(initialDistance, Instant.now(), "1234GS1"))
+        );
+        Thread.sleep(1000);
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(initialDistance + distanceIncrement, Instant.now(), "1234GS1"))
+        );
+        verify(bus, times(1)).send(any(Message.class));
+        assertThat(carAheadSpeedSensor.createMessage().getContent(), is(70d));
     }
 
     @Test
-    public void car_ahead_distance_received_should_be_equal_to_car_ahead_distance_set() throws Exception {
-        double distance = 48.2d;
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(distance));
-        assertThat(carAheadSpeedSensor.getCarAheadDistance(), is(distance));
+    public void should_publish_a_lower_speed_than_mine_if_distance_decrements() throws Exception {
+        final double initialDistance = 20d, distanceDecrement = 5d;
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(50d));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(initialDistance, Instant.now(), "1234GS1"))
+        );
+        Thread.sleep(1000);
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(initialDistance - distanceDecrement, Instant.now(), "1234GS1"))
+        );
+        verify(bus, times(1)).send(any(Message.class));
+        assertThat(carAheadSpeedSensor.createMessage().getContent(), is(45d));
     }
+
+    @Test
+    public void should_not_publish_speed_if_plate_change() throws Exception {
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(50d));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(5d, Instant.now(), "1234GS1"))
+        );
+        Thread.sleep(1000);
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(25d, Instant.now(), "1234HPDS"))
+        );
+        verify(bus, times(0)).send(any(Message.class));
+    }
+
 
 
     private MessageFiller createMessageOfType(String type) {
@@ -142,6 +204,24 @@ public class CarAheadSpeedSensor_ {
         Message withContent(Object content);
     }
 
+    private CarAheadDistance createCarAheadDistance(final double metersToCarAhead, final Instant instant, final String plate) {
+        return new CarAheadDistance() {
+                @Override
+                public String getPlate() {
+                    return plate;
+                }
+
+                @Override
+                public double getMetersToCar() {
+                    return metersToCarAhead;
+                }
+
+                @Override
+                public Instant getTime() {
+                    return instant;
+                }
+            };
+    }
 
 
 }
