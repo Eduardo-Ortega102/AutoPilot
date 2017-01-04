@@ -4,8 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,80 +18,6 @@ public class CarAheadSpeedSensor_ {
     public void setUp() throws Exception {
         bus = mock(Bus.class);
         this.carAheadSpeedSensor = new CarAheadSpeedSensor(bus);
-    }
-
-    private static class CarAheadSpeedSensor implements VirtualSensor {
-        private final String publicationType;
-        private double carAheadSpeed;
-        private double ownSpeed;
-        private Bus bus;
-        private CarAheadDistance carAheadDistance;
-        private Map<String, MessageProcessor> processors;
-
-        public CarAheadSpeedSensor(Bus bus) {
-            publicationType = "CarAheadSpeed";
-            carAheadDistance = null;
-            this.bus = bus;
-            ownSpeed = 0;
-            carAheadSpeed = Double.MAX_VALUE;
-            processors = new HashMap<>();
-            processors.put("ownSpeed", this::processOwnSpeed);
-            processors.put("carAheadDistance", this::processCarAheadDistance);
-        }
-
-        public double getOwnSpeed() {
-            return ownSpeed;
-        }
-
-        public CarAheadDistance getCarAheadDistance() {
-            return carAheadDistance;
-        }
-
-        @Override
-        public void publish(Message message) {
-            if (publicationType.equals(message.type())) bus.send(message);
-        }
-
-        @Override
-        public void receive(Message message) {
-            processors.get(message.type()).processMessage(message);
-        }
-
-        private void processCarAheadDistance(Message message) {
-            CarAheadDistance newDistance = (CarAheadDistance) message.getContent();
-            if (carAheadDistance != null && carAheadDistance.getPlate().equals(newDistance.getPlate())){
-                calculateCarAheadSpeed(newDistance);
-                publish(createMessage());
-            }
-            carAheadDistance = newDistance;
-        }
-
-        private void processOwnSpeed(Message message) {
-            ownSpeed = (double) message.getContent();
-        }
-
-        private void calculateCarAheadSpeed(CarAheadDistance newDistance) {
-            double finalDistance = newDistance.getMetersToCar();
-            double initialDistance = carAheadDistance.getMetersToCar();
-            long finalInstant = newDistance.getTime().toEpochMilli() / 1000;
-            long initialInstant = carAheadDistance.getTime().toEpochMilli() / 1000;
-            carAheadSpeed = ownSpeed + (finalDistance - initialDistance) / (finalInstant - initialInstant);
-        }
-
-        @Override
-        public Message createMessage() {
-            return new Message<Double>() {
-                @Override
-                public String type() {
-                    return publicationType;
-                }
-
-                @Override
-                public Double getContent() {
-                    return carAheadSpeed;
-                }
-            };
-        }
     }
 
 
