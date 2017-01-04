@@ -3,7 +3,7 @@ package is.monkeydrivers;
 import java.util.HashMap;
 import java.util.Map;
 
-class CarAheadSpeedSensor implements VirtualSensor {
+public class CarAheadSpeedSensor implements VirtualSensor {
     private final String publicationType;
     private double carAheadSpeed;
     private double ownSpeed;
