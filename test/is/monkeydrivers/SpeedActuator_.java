@@ -79,7 +79,7 @@ public class SpeedActuator_ {
     }
 
     @Test
-    public void should_reduce_speed_when_arrives_to_amber_traffic_light() throws Exception {
+    public void should_stop_when_arrives_to_amber_traffic_light() throws Exception {
         ownSpeed = 28d;
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
         actuator.receive(createMessageOfType("trafficLight").withContent("amber"));
@@ -108,7 +108,6 @@ public class SpeedActuator_ {
         double carAheadSpeed = 18d;
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
         actuator.receive(createMessageOfType("CarAheadSpeed").withContent(carAheadSpeed));
-        actuator.receive(createMessageOfType("roadMinimumSpeed").withContent(20d));
         Field ownSpeed = SpeedActuator.class.getDeclaredField("ownSpeed");
         ownSpeed.setAccessible(true);
         assertThat(ownSpeed.get(actuator), is(carAheadSpeed));
@@ -116,18 +115,17 @@ public class SpeedActuator_ {
     }
 
     @Test
-    public void should_adjust_own_speed_if_car_ahead_speed_is_higher() throws Exception {
+    public void should_adjust_own_speed_if_car_ahead_speed_is_higher_without_speeding() throws Exception {
         ownSpeed = 28d;
-        double carAheadSpeed = 38d;
+        double carAheadSpeed = 40d, roadMaxSpeed = 35d;
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
-        actuator.receive(createMessageOfType("roadMaximumSpeed").withContent(90d));
+        actuator.receive(createMessageOfType("roadMaximumSpeed").withContent(roadMaxSpeed));
         actuator.receive(createMessageOfType("CarAheadSpeed").withContent(carAheadSpeed));
         Field ownSpeed = SpeedActuator.class.getDeclaredField("ownSpeed");
         ownSpeed.setAccessible(true);
-        assertThat(ownSpeed.get(actuator), is(carAheadSpeed));
+        assertThat(ownSpeed.get(actuator), is(roadMaxSpeed));
         ownSpeed.setAccessible(false);
     }
-
 
     private MessageFiller createMessageOfType(String type) {
         Message message = mock(Message.class);

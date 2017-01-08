@@ -38,14 +38,14 @@ public class SpeedActuator implements Actuator {
         processors.put("trafficLight", this::processTrafficLight);
     }
 
-    private void processTrafficLight(Message message) {
-        currentTrafficLight = (String) message.getContent();
-    }
-
     @Override
     public void receive(Message message) {
         processors.get(message.type()).processMessage(message);
         adjustSpeed();
+    }
+
+    private void processTrafficLight(Message message) {
+        currentTrafficLight = (String) message.getContent();
     }
 
     private void processRoadMaximumSpeed(Message message) {
@@ -71,14 +71,13 @@ public class SpeedActuator implements Actuator {
 
     private boolean shouldPressBrake() {
         return thereIsACarAhead() && ownSpeed > carAheadSpeed ||
-                thereIsTrafficLight() && ownSpeed != 0 ||
-                ownSpeed > roadMaximumSpeed;
+               thereIsTrafficLight() && ownSpeed != 0 ||
+               ownSpeed > roadMaximumSpeed;
     }
 
     private boolean shouldPressGas() {
-        return !thereIsTrafficLight() && ownSpeed == 0 ||
-                thereIsACarAhead() && ownSpeed < carAheadSpeed ||
-                !thereIsTrafficLight() && !thereIsACarAhead() && ownSpeed < roadMinimumSpeed;
+        return thereIsACarAhead() && ownSpeed < carAheadSpeed && ownSpeed < roadMaximumSpeed ||
+               !thereIsTrafficLight() && !thereIsACarAhead() && ownSpeed < roadMinimumSpeed;
     }
 
     private boolean thereIsTrafficLight() {
