@@ -27,14 +27,6 @@ public class CarAheadSpeedSensor implements VirtualSensor {
         processors.put("carAheadDistance", this::processCarAheadDistance);
     }
 
-    public double getOwnSpeed() {
-        return ownSpeed;
-    }
-
-    public CarAheadDistance getCarAheadDistance() {
-        return carAheadDistance;
-    }
-
     @Override
     public void publish(Message message) {
         if (publicationType.equals(message.type())) bus.send(message);

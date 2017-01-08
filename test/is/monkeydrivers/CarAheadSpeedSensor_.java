@@ -25,7 +25,7 @@ public class CarAheadSpeedSensor_ {
 
 
     @Test
-    public void should_publish_CarAheadSpeed_message() throws Exception {
+    public void should_publish_a_message_of_type_CarAheadSpeed() throws Exception {
         Message message = createMessageOfType("CarAheadSpeed").withContent(null);
         carAheadSpeedSensor.publish(message);
         verify(bus, times(1)).send(message);
@@ -36,25 +36,6 @@ public class CarAheadSpeedSensor_ {
         Message message = createMessageOfType("foo").withContent(null);
         carAheadSpeedSensor.publish(message);
         verify(bus, times(0)).send(message);
-    }
-
-    @Test
-    public void should_store_own_speed_received() throws Exception {
-        double speed = 50d;
-        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(speed));
-        assertThat(carAheadSpeedSensor.getOwnSpeed(), is(speed));
-    }
-
-    @Test
-    public void should_store_car_ahead_distance_received() throws Exception {
-        double metersToCarAhead = 48.2d;
-        Instant instant = Instant.now();
-        String plate = "1234HPDS";
-        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance")
-                                    .withContent(createCarAheadDistance(metersToCarAhead, instant, plate)));
-        assertThat(carAheadSpeedSensor.getCarAheadDistance().getPlate(), is(plate));
-        assertThat(carAheadSpeedSensor.getCarAheadDistance().getMetersToCar(), is(metersToCarAhead));
-        assertThat(carAheadSpeedSensor.getCarAheadDistance().getTime(), is(instant));
     }
 
     @Test
@@ -103,7 +84,7 @@ public class CarAheadSpeedSensor_ {
     }
 
     @Test
-    public void should_not_publish_speed_if_plate_change() throws Exception {
+    public void should_not_publish_speed_when_plate_changes() throws Exception {
         carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(50d));
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(5d, Instant.now(), "1234GS1"))
