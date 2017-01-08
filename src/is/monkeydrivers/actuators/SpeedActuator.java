@@ -1,6 +1,5 @@
 package is.monkeydrivers.actuators;
 
-import is.monkeydrivers.Actuator;
 import is.monkeydrivers.message.Message;
 import is.monkeydrivers.message.MessageProcessor;
 import is.monkeydrivers.mechanics.Pedal;

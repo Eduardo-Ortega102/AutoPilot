@@ -1,5 +1,6 @@
 package is.monkeydrivers;
 
+import is.monkeydrivers.actuators.Actuator;
 import is.monkeydrivers.actuators.SpeedActuator;
 import is.monkeydrivers.mechanics.Pedal;
 import is.monkeydrivers.message.Message;

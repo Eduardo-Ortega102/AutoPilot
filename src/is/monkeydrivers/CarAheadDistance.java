@@ -1,4 +1,4 @@
-package is.monkeydrivers.message;
+package is.monkeydrivers;
 
 import java.time.Instant;
 

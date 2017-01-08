@@ -1,6 +1,5 @@
 package is.monkeydrivers;
 
-import is.monkeydrivers.message.CarAheadDistance;
 import is.monkeydrivers.message.Message;
 import is.monkeydrivers.sensors.CarAheadSpeedSensor;
 import org.junit.Before;

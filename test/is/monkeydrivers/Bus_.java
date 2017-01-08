@@ -1,6 +1,5 @@
 package is.monkeydrivers;
 
-import is.monkeydrivers.message.MapBus;
 import is.monkeydrivers.message.Message;
 import org.junit.Before;
 import org.junit.Test;
