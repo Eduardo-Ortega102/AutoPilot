@@ -1,13 +1,14 @@
-package is.monkeydrivers;
+package is.monkeydrivers.message;
+
+import is.monkeydrivers.Bus;
+import is.monkeydrivers.Subscriber;
+import is.monkeydrivers.message.Message;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Mictlan on 13/12/2016.
- */
 public class MapBus implements Bus {
     private Map<String, List<Subscriber>> subscribers = new HashMap<>();
 

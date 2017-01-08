@@ -1,5 +1,7 @@
 package is.monkeydrivers;
 
+import is.monkeydrivers.message.Message;
+
 public interface Bus {
 
     Subscription subscribe(Subscriber subscriber);

@@ -1,4 +1,9 @@
-package is.monkeydrivers;
+package is.monkeydrivers.sensors;
+
+import is.monkeydrivers.*;
+import is.monkeydrivers.message.CarAheadDistance;
+import is.monkeydrivers.message.Message;
+import is.monkeydrivers.message.MessageProcessor;
 
 import java.util.HashMap;
 import java.util.Map;

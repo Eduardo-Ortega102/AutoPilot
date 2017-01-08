@@ -1,4 +1,4 @@
-package is.monkeydrivers;
+package is.monkeydrivers.message;
 
 @FunctionalInterface
 public interface MessageProcessor {
