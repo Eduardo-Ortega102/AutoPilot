@@ -50,6 +50,7 @@ public class CarAheadSpeedSensor_ {
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(carAheadDistance, Instant.now(), "1234GS1"))
         );
+        verify(bus, times(1)).send(any(Message.class));
         assertThat(carAheadSpeedSensor.createMessage().getContent(), is(speed));
     }
     
