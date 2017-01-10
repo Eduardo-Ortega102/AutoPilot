@@ -59,12 +59,13 @@ public class SpeedActuator_ {
     @Test
     public void should_not_do_slow_driving_on_motorways() throws Exception {
         ownSpeed = 3;
-        double motorwaysMinSpeed = 17;
+        double motorwaysMinSpeed = 17, motorwaysMaxSpeed = 22;
+        actuator.receive(createMessageOfType("roadMaximumSpeed").withContent(motorwaysMaxSpeed));
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
         actuator.receive(createMessageOfType("roadMinimumSpeed").withContent(motorwaysMinSpeed));
         Field ownSpeed = SpeedActuator.class.getDeclaredField("ownSpeed");
         ownSpeed.setAccessible(true);
-        assertThat(ownSpeed.get(actuator), is(motorwaysMinSpeed));
+        assertThat(ownSpeed.get(actuator), not(motorwaysMinSpeed));
         ownSpeed.setAccessible(false);
     }
 
@@ -93,7 +94,7 @@ public class SpeedActuator_ {
     @Test
     public void should_start_when_traffic_light_change_to_green() throws Exception {
         ownSpeed = 0d;
-        double roadMaxSpeed = 8;
+        double roadMaxSpeed = 10;
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
         actuator.receive(createMessageOfType("roadMaximumSpeed").withContent(roadMaxSpeed));
         actuator.receive(createMessageOfType("trafficLight").withContent("green"));
@@ -106,7 +107,8 @@ public class SpeedActuator_ {
     @Test
     public void should_adjust_own_speed_if_car_ahead_speed_is_lower() throws Exception {
         ownSpeed = 28d;
-        double carAheadSpeed = 18d;
+        double carAheadSpeed = 18, roadMaxSpeed = 20;
+        actuator.receive(createMessageOfType("roadMaximumSpeed").withContent(roadMaxSpeed));
         actuator.receive(createMessageOfType("ownSpeed").withContent(ownSpeed));
         actuator.receive(createMessageOfType("CarAheadSpeed").withContent(carAheadSpeed));
         Field ownSpeed = SpeedActuator.class.getDeclaredField("ownSpeed");
@@ -137,9 +139,5 @@ public class SpeedActuator_ {
         };
     }
 
-    @FunctionalInterface
-    private interface MessageFiller{
-        Message withContent(Object content);
-    }
 
 }

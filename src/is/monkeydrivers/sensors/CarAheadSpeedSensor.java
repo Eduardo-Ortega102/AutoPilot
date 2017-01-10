@@ -42,6 +42,9 @@ public class CarAheadSpeedSensor implements VirtualSensor {
         if (carAheadDistance != null && carAheadDistance.getPlate().equals(newDistance.getPlate())) {
             calculateCarAheadSpeed(newDistance);
             publish(createMessage());
+        } else if (newDistance.getPlate().equals("--")) {
+            carAheadSpeed = Double.MAX_VALUE;
+            publish(createMessage());
         }
         carAheadDistance = newDistance;
     }
@@ -53,9 +56,9 @@ public class CarAheadSpeedSensor implements VirtualSensor {
     private void calculateCarAheadSpeed(CarAheadDistance newDistance) {
         double finalDistance = newDistance.getMetersToCar();
         double initialDistance = carAheadDistance.getMetersToCar();
-        long finalInstant = newDistance.getTime().toEpochMilli() / 1000;
-        long initialInstant = carAheadDistance.getTime().toEpochMilli() / 1000;
-        carAheadSpeed = ownSpeed + (finalDistance - initialDistance) / (finalInstant - initialInstant);
+        long finalInstant = newDistance.getTimeInMilliseconds();
+        long initialInstant = carAheadDistance.getTimeInMilliseconds();
+        carAheadSpeed = ownSpeed + (finalDistance - initialDistance) / ((finalInstant - initialInstant)/ 1000);
     }
 
     @Override

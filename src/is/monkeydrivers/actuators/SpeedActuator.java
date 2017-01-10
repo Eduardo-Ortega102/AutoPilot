@@ -22,8 +22,8 @@ public class SpeedActuator implements Actuator {
         this.gasPedal = gasPedal;
         ownSpeed = 0;
         carAheadSpeed = Double.MAX_VALUE;
-        roadMaximumSpeed = Double.MAX_VALUE;
         roadMinimumSpeed = 8;
+        roadMaximumSpeed = roadMinimumSpeed;
         currentTrafficLight = "green";
         initMessageProcessors();
     }
@@ -76,7 +76,7 @@ public class SpeedActuator implements Actuator {
 
     private boolean shouldPressGas() {
         return thereIsACarAhead() && ownSpeed < carAheadSpeed && ownSpeed < roadMaximumSpeed ||
-               !thereIsTrafficLight() && !thereIsACarAhead() && ownSpeed < roadMinimumSpeed;
+               !thereIsTrafficLight() && !thereIsACarAhead() && ownSpeed < roadMaximumSpeed;
     }
 
     private boolean thereIsTrafficLight() {

@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,7 +46,7 @@ public class CarAheadSpeedSensor_ {
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(carAheadDistance, Instant.now(), "1234GS1"))
         );
-        Thread.sleep(1000);
+        TimeUnit.SECONDS.sleep(1);
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(carAheadDistance, Instant.now(), "1234GS1"))
         );
@@ -60,7 +61,7 @@ public class CarAheadSpeedSensor_ {
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(initialDistance, Instant.now(), "1234GS1"))
         );
-        Thread.sleep(1000);
+        TimeUnit.SECONDS.sleep(1);
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(initialDistance + distanceIncrement, Instant.now(), "1234GS1"))
         );
@@ -75,7 +76,7 @@ public class CarAheadSpeedSensor_ {
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(initialDistance, Instant.now(), "1234GS1"))
         );
-        Thread.sleep(1000);
+        TimeUnit.SECONDS.sleep(1);
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(initialDistance - distanceDecrement, Instant.now(), "1234GS1"))
         );
@@ -89,7 +90,7 @@ public class CarAheadSpeedSensor_ {
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(5d, Instant.now(), "1234GS1"))
         );
-        Thread.sleep(1000);
+        TimeUnit.SECONDS.sleep(1);
         carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
                 createCarAheadDistance(25d, Instant.now(), "1234HPDS"))
         );
@@ -97,6 +98,17 @@ public class CarAheadSpeedSensor_ {
     }
 
 
+    @Test
+    public void should_publish_max_value_if_there_is_no_car_ahead() throws Exception {
+        double speed = 50d;
+        double carAheadDistance = Double.MAX_VALUE;
+        carAheadSpeedSensor.receive(createMessageOfType("ownSpeed").withContent(speed));
+        carAheadSpeedSensor.receive(createMessageOfType("carAheadDistance").withContent(
+                createCarAheadDistance(carAheadDistance, Instant.now(), "--"))
+        );
+        verify(bus, times(1)).send(any(Message.class));
+        assertThat(carAheadSpeedSensor.createMessage().getContent(), is(Double.MAX_VALUE));
+    }
 
     private MessageFiller createMessageOfType(String type) {
         Message message = mock(Message.class);
@@ -107,12 +119,8 @@ public class CarAheadSpeedSensor_ {
         };
     }
 
-    @FunctionalInterface
-    private interface MessageFiller{
-        Message withContent(Object content);
-    }
 
-    private CarAheadDistance createCarAheadDistance(final double metersToCarAhead, final Instant instant, final String plate) {
+    private CarAheadDistance createCarAheadDistance(final double metersToCarAhead, Instant now, final String plate) {
         return new CarAheadDistance() {
                 @Override
                 public String getPlate() {
@@ -125,8 +133,8 @@ public class CarAheadSpeedSensor_ {
                 }
 
                 @Override
-                public Instant getTime() {
-                    return instant;
+                public long getTimeInMilliseconds() {
+                    return now.toEpochMilli();
                 }
             };
     }
